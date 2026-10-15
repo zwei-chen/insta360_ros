@@ -1,0 +1,11 @@
+name: insta360_ros
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - av>=12,<17
+      - numpy>=1.24,<3
+      - Pillow>=10,<13
+      - rosbags>=0.10,<0.12
