@@ -8,6 +8,7 @@ Tested with Insta360 Ace Pro 2 recordings.
 ## Installation
 
 ```bash
+git clone https://github.com/zwei-chen/insta360_ros.git
 cd insta360_ros
 conda env create -f environment.yml
 conda activate insta360_ros
@@ -81,24 +82,6 @@ with conversion settings and source timestamps.
 | `--scale` | `1.0` | Image scale in `(0, 1]` |
 | `--grayscale` | off | Export grayscale images |
 | `--quiet` | off | Suppress progress output |
-
-## Timestamps
-
-Timestamps use UTC Unix time in integer nanoseconds. MP4 `creation_time` anchors
-the embedded first-frame device timestamp. Images use matched exposure times;
-IMU timestamps include the embedded gyro offset:
-
-```text
-image_utc_ns = utc_start_ns + exposure_device_ns - first_frame_device_ns
-imu_utc_ns   = utc_start_ns + imu_device_ns - first_frame_device_ns - gyro_offset_ns
-```
-
-Set the first-frame UTC time explicitly when needed:
-
-```bash
-python convert.py /path/to/video.mp4 --format euroc --output runs/recording_euroc \
-    --utc-start 2025-11-02T03:06:05Z
-```
 
 ## References
 
