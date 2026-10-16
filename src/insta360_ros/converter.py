@@ -19,14 +19,14 @@ from insta360_ros.core.timing import (
 from insta360_ros.core.video import decode_frames, inspect_video
 
 
-def _writer(root: Path, output_format: str):
+def _writer(root: Path, output_format: str, compression: str):
     if output_format == "euroc":
         from insta360_ros.writers.euroc import EurocWriter
 
         return EurocWriter(root)
     from insta360_ros.writers.ros import RosWriter
 
-    return RosWriter(root, output_format)
+    return RosWriter(root, output_format, compression)
 
 
 def convert(
@@ -38,6 +38,7 @@ def convert(
     grayscale: bool = False,
     utc_start: str | None = None,
     frame_time_source: str = "exposure",
+    compression: str = "none",
     progress=None,
 ) -> dict:
     """Create a new output directory; publish it only after a successful export."""
@@ -46,6 +47,10 @@ def convert(
         raise FileExistsError(f"Output already exists: {output}")
     if output_format not in ("ros1", "ros2", "euroc"):
         raise ValueError("Output format must be ros1, ros2, or euroc (EuRoC / TUM-VI)")
+    if compression not in ("none", "zstd"):
+        raise ValueError("Compression must be none or zstd")
+    if compression != "none" and output_format != "ros2":
+        raise ValueError("ZSTD compression is supported only for ROS2 bags")
     if frame_time_source not in ("exposure", "pts"):
         raise ValueError("Frame time source must be exposure or pts")
     if not math.isfinite(scale) or not 0 < scale <= 1:
@@ -69,7 +74,7 @@ def convert(
     staging = Path(tempfile.mkdtemp(prefix=f".{output.name}.partial-", dir=output.parent))
     try:
         with ExitStack() as stack:
-            writer = stack.enter_context(_writer(staging, output_format))
+            writer = stack.enter_context(_writer(staging, output_format, compression))
             frame_file = stack.enter_context(
                 (staging / "frame_timestamps.csv").open("w", newline="")
             )
@@ -161,6 +166,7 @@ def convert(
         report = {
             "converter_version": __version__,
             "format": output_format,
+            "ros2_compression": compression if output_format == "ros2" else None,
             "source": str(source),
             "source_size_bytes": source.stat().st_size,
             "counts": counts,

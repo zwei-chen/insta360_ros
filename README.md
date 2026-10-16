@@ -28,6 +28,12 @@ python convert.py /path/to/video.mp4 --format ros1 --output runs/recording_ros1
 python convert.py /path/to/video.mp4 --format ros2 --output runs/recording_ros2
 ```
 
+Use `--compression zstd` for lossless ROS 2 message compression:
+
+```bash
+python convert.py /path/to/video.mp4 --format ros2 --compression zstd --output runs/recording_ros2
+```
+
 ### EuRoC / TUM-VI
 
 ```bash
@@ -76,6 +82,7 @@ with conversion settings and source timestamps.
 |---|---|---|
 | `--format` | `euroc` | `ros1`, `ros2`, or `euroc` |
 | `--output` | required for conversion | Output directory |
+| `--compression` | `none` | ROS 2 message compression: `none` or `zstd` |
 | `--inspect` | off | Print recording metadata |
 | `--utc-start` | MP4 `creation_time` | First-frame UTC time, with an explicit timezone |
 | `--frame-time-source` | `exposure` | Image timing from `exposure` or video `pts` |

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 from rosbags.rosbag1 import Writer as Ros1Writer
+from rosbags.rosbag2 import CompressionFormat, CompressionMode
 from rosbags.rosbag2 import Writer as Ros2Writer
 from rosbags.typesys import Stores, get_typestore
 
@@ -12,16 +13,23 @@ from insta360_ros.models import ImuSample
 
 
 class RosWriter:
-    def __init__(self, root: Path, output_format: str):
+    def __init__(self, root: Path, output_format: str, compression: str = "none"):
         self.ros1 = output_format == "ros1"
+        if compression not in ("none", "zstd"):
+            raise ValueError("Compression must be none or zstd")
+        if self.ros1 and compression != "none":
+            raise ValueError("ZSTD compression is supported only for ROS2 bags")
         self.types = get_typestore(Stores.ROS1_NOETIC if self.ros1 else Stores.ROS2_HUMBLE)
         self.stack = ExitStack()
         self.sequence = {"image": 0, "imu": 0}
         self.last_stamp = None
         try:
-            self.writer = self.stack.enter_context(
+            writer = (
                 Ros1Writer(root / "data.bag") if self.ros1 else Ros2Writer(root / "bag", version=9)
             )
+            if compression == "zstd":
+                writer.set_compression(CompressionMode.MESSAGE, CompressionFormat.ZSTD)
+            self.writer = self.stack.enter_context(writer)
             self.connections = {
                 "image": self.writer.add_connection(
                     "/insta360/image_raw", "sensor_msgs/msg/Image", typestore=self.types

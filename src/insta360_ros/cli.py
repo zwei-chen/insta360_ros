@@ -29,6 +29,12 @@ def main(argv=None) -> int:
         "--output", type=Path, help="New output directory; existing paths are never overwritten"
     )
     parser.add_argument(
+        "--compression",
+        choices=("none", "zstd"),
+        default="none",
+        help="ROS2 bag compression (zstd is lossless; default: none)",
+    )
+    parser.add_argument(
         "--inspect",
         action="store_true",
         help="Print video and telemetry metadata without exporting images",
@@ -84,6 +90,7 @@ def main(argv=None) -> int:
                 grayscale=args.grayscale,
                 utc_start=args.utc_start,
                 frame_time_source=args.frame_time_source,
+                compression=args.compression,
                 progress=progress,
             )
         print(json.dumps(result, indent=2))
